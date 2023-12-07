@@ -1,0 +1,74 @@
+---
+title: "Filename-Quality"
+author: "Alvin, Lin"
+date: "`r Sys.Date()`"
+format:
+   html:
+     theme: flatly
+     self-contained: true
+toc: true
+toc-depth: 3
+toc-location: left
+execute:
+  echo: false
+  warning: false 
+  keep-md: true
+---
+
+<!-- UUU \\wf00168p.oneabbott.com\data1\CDM\ALB-US-EXP-21001\UploadData\AUU\AUU_DataFiles -->
+<!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554 -->
+
+<!-- Step 1 : Copy the upload directory and then paste -->
+<!-- Step 2 : Ctrl + Alt + R -->
+
+```{r}
+#| label: Libaray Packages 
+#| message: false
+library(tidyverse)
+library(openxlsx)
+library(fs)
+```
+
+```{r}
+#| label: Directory
+file_list <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554)"),recurse = T,glob = "*extracted_realm.zip|*events.csv")
+```
+
+```{r}
+#| label: Filter Path
+file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]
+```
+
+```{r}
+#| label: Wrangle Path
+data <- tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Upload Data/).+")),
+               Site  = str_c(str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+|(?<=Data Files/)[:alnum:]+",ignore_case = T)),
+                     str_extract(Path,regex("(?<=DataFiles/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+|(?<=Data Files/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+",ignore_case = T)),
+                     sep = "-"),
+              `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+")),
+              `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+"))) |> 
+        mutate(Status = case_when(
+               str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
+               str_length(`Condition ID`) != 3 |
+               str_detect(`Condition ID`,"[:lower:]") |
+               str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3)~ "No Good",
+               .default = "Good"))
+```
+
+```{r}
+#| label: Output excel
+# Create a workbook
+wb <- createWorkbook()
+# Create style 
+style1 <- createStyle(fontColour = "coral") 
+# Add a empty worksheet
+addWorksheet(wb,"Filename-Quality")
+# Write the data to the worksheet
+writeData(wb,"Filename-Quality", data, startCol = 1, startRow = 1, rowNames = F)
+# Conditional Formatting
+conditionalFormatting(wb, "Filename-Quality", cols = 5, rows = 1:(nrow(data) + 1), style = style1, type = "contains", rule = "No Good")
+# Create file name
+file_name = str_c(str_replace(str_remove(str_extract(file_path[1],regex("(?<=CDM/)[:graph:]+")),regex("/UploadData.+")),"/","-"), " Filename-Quality.xlsx")
+# Save worksheet
+saveWorkbook(wb, file_name, overwrite = TRUE)
+```
