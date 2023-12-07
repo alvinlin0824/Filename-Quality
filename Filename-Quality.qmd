@@ -14,9 +14,12 @@ execute:
   warning: false 
   keep-md: true
 ---
-
+<!-- External -->
 <!-- UUU \\wf00168p.oneabbott.com\data1\CDM\ALB-US-EXP-21001\UploadData\AUU\AUU_DataFiles -->
 <!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554 -->
+
+<!-- InHouse -->
+<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\004 -->
 
 <!-- Instructions -->
 <!-- Step 1 : Copy the upload directory and then paste -->
@@ -32,16 +35,41 @@ library(fs)
 
 ```{r}
 #| label: Directory
-file_list <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554)"),recurse = T,glob = "*extracted_realm.zip|*events.csv")
+file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008\UUU)"),recurse = T,glob = "*extracted_realm.zip|*events.csv")
 ```
 
 ```{r}
 #| label: Filter Path
-file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]
+if (any(str_detect(file_list,"CDM_23238"))){
+file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T))]} else {
+file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]}
+```
+
+<!-- //oneabbott.com/dept/ADC/Technical_OPS/Clinical_Affairs/CDM_23238/004/UUU/004UUUFIN_L1/ApolADC0073000000_DUL_231020_112431/ApolADC0073000000_DUL_231020_112431_events.csv -->
+<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008\UUU\008UUUFIN_G1L1\MobiADC0186325782_RU2_231128_151112_dualsensors\MobiADC0186325782_RU2_231128_151112_dualsensors_events.csv -->
+```{r}
+tibble(Path = str_extract(file_path, regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
+       `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}")),
+       `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+"))) |> 
+           mutate(Status = case_when(
+               str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
+               str_length(`Condition ID`) != 3 |
+               str_detect(`Condition ID`,"[:lower:]")  ~ "No Good",
+               .default = "Good"))
 ```
 
 ```{r}
 #| label: Wrangle Path
+if (any(str_detect(file_list,"CDM_23238"))){
+  data <- tibble(Path = str_extract(file_path, regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
+                `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}")),
+                `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+"))) |> 
+           mutate(Status = case_when(
+               str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
+               str_length(`Condition ID`) != 3 |
+               str_detect(`Condition ID`,"[:lower:]")  ~ "No Good",
+               .default = "Good"))
+} else {
 data <- tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Upload Data/).+")),
                Site  = str_c(str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+|(?<=Data Files/)[:alnum:]+",ignore_case = T)),
                      str_extract(Path,regex("(?<=DataFiles/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+|(?<=Data Files/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+",ignore_case = T)),
@@ -54,6 +82,7 @@ data <- tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Uploa
                str_detect(`Condition ID`,"[:lower:]") |
                str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) ~ "No Good",
                .default = "Good"))
+}
 ```
 
 ```{r}
@@ -69,7 +98,10 @@ writeData(wb,"Filename-Quality", data, startCol = 1, startRow = 1, rowNames = F)
 # Conditional Formatting
 conditionalFormatting(wb, "Filename-Quality", cols = 5, rows = 1:(nrow(data) + 1), style = style1, type = "contains", rule = "No Good")
 # Create file name
-file_name = str_c(str_replace(str_remove(str_extract(file_path[1],regex("(?<=CDM/)[:graph:]+")),regex("/UploadData.+")),"/","-"), " Filename-Quality.xlsx")
+if (any(str_detect(file_list,"CDM_23238"))) {
+file_name <- str_c(str_replace(str_extract(file_path[1],regex("(?<=CDM_).{9}")),"/","-Sub")," Filename-Quality.xlsx")
+} else {
+file_name = str_c(str_replace(str_remove(str_extract(file_path[1],regex("(?<=CDM/)[:graph:]+")),regex("/UploadData.+")),"/","-"), " Filename-Quality.xlsx")}
 # Save worksheet
 saveWorkbook(wb, file_name, overwrite = TRUE)
 ```
