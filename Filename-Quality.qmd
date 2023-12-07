@@ -20,6 +20,7 @@ execute:
 
 <!-- InHouse -->
 <!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\004 -->
+<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\007 -->
 
 <!-- Instructions -->
 <!-- Step 1 : Copy the upload directory and then paste -->
@@ -35,7 +36,7 @@ library(fs)
 
 ```{r}
 #| label: Directory
-file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008\UUU)"),recurse = T,glob = "*extracted_realm.zip|*events.csv")
+file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\007)"),recurse = T,glob = "*extracted_realm.zip|*events.csv")
 ```
 
 ```{r}
@@ -47,17 +48,6 @@ file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|A
 
 <!-- //oneabbott.com/dept/ADC/Technical_OPS/Clinical_Affairs/CDM_23238/004/UUU/004UUUFIN_L1/ApolADC0073000000_DUL_231020_112431/ApolADC0073000000_DUL_231020_112431_events.csv -->
 <!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008\UUU\008UUUFIN_G1L1\MobiADC0186325782_RU2_231128_151112_dualsensors\MobiADC0186325782_RU2_231128_151112_dualsensors_events.csv -->
-```{r}
-tibble(Path = str_extract(file_path, regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
-       `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}")),
-       `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+"))) |> 
-           mutate(Status = case_when(
-               str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
-               str_length(`Condition ID`) != 3 |
-               str_detect(`Condition ID`,"[:lower:]")  ~ "No Good",
-               .default = "Good"))
-```
-
 ```{r}
 #| label: Wrangle Path
 if (any(str_detect(file_list,"CDM_23238"))){
