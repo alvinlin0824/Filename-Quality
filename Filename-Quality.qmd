@@ -51,7 +51,7 @@ data <- tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Uploa
                str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
                str_length(`Condition ID`) != 3 |
                str_detect(`Condition ID`,"[:lower:]") |
-               str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3)~ "No Good",
+               str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) ~ "No Good",
                .default = "Good"))
 ```
 
