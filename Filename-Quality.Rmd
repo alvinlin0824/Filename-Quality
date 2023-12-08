@@ -2,61 +2,33 @@
 title: "Filename Quality"
 author: "Alvin, Lin"
 date: "`r Sys.Date()`"
-format:
-   html:
-     theme: flatly
-     self-contained: true
-toc: true
-toc-depth: 3
-toc-location: left
-execute:
-  echo: false
-  warning: false 
-  keep-md: true
 ---
-<!-- External -->
-<!-- UUU \\wf00168p.oneabbott.com\data1\CDM\ALB-US-EXP-21001\UploadData\AUU\AUU_DataFiles -->
-<!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554 -->
 
-<!-- Upload Data has a blank  -->
-<!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-22225\SE29_Ket\Upload Data\UUU\UUU_DataFiles\ERA-117 -->
-<!-- Data Files has a blank and Multiple Visits and rounds-->
-<!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-22225\SE36_Lac\UploadData\UUU\UUU Data Files -->
-<!-- Multiple Visits and rounds -->
-<!-- UUU/UUU_DataFiles/SDRI-058/000580001/FV/Apol0580001_______CAP_230405_101208/Apol0580001_______CAP_230405_101208_events.csv -->
-
-<!-- InHouse -->
-<!-- Round 1 -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\003 -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\004 -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\007 -->
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
 
 <!-- Instructions -->
 <!-- Step 1 : Copy the upload directory and then paste -->
 <!-- Step 2 : Ctrl + Alt + R -->
 
-```{r}
-#| label: Libaray Packages 
-#| message: false
+```{r Libaray Packages, message = FALSE}
 library(tidyverse)
 library(openxlsx)
 library(fs)
 ```
 
-```{r}
-#| label: Directory
-file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008)"),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
+```{r Directory}
+file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\005)"),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
 ```
 
-```{r}
-#| label: Filter Path
+```{r Filter Path}
 if (any(str_detect(file_list,"CDM_23238"))){
 file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T))]} else {
 file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]}
 ```
 
-```{r}
-#| label: Wrangle Path
+```{r Wrangle Path}
 if (any(str_detect(file_list,"CDM_23238"))){
   data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
        Site  = str_extract(Path,regex("(?<=/Apol)[:upper:]{3}|(?<=/Mobi)[:upper:]{3}|(?<=/GK_)[:upper:]{3}")),
@@ -112,8 +84,7 @@ data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(
 }
 ```
 
-```{r}
-#| label: Output excel
+```{r Output excel}
 # Create a workbook
 wb <- createWorkbook()
 # Create style 
