@@ -43,7 +43,7 @@ file_list <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ALB-
 #| label: Filter Path
 if (any(str_detect(file_list,"CDM_23238"))){
 file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T))]} else {
-file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]}
+file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|dualsensors_events.csv",ignore_case = T)) & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T))]}
 ```
 
 <!-- //oneabbott.com/dept/ADC/Technical_OPS/Clinical_Affairs/CDM_23238/004/UUU/004UUUFIN_L1/ApolADC0073000000_DUL_231020_112431/ApolADC0073000000_DUL_231020_112431_events.csv -->
@@ -66,16 +66,54 @@ data <- tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Uploa
                      str_extract(Path,regex("(?<=DataFiles/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+|(?<=Data Files/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+",ignore_case = T)),
                      sep = "-"),
               `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+")),
-              `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+"))) |> 
-        mutate(Status = case_when(
+              `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+")),
+            Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
+            Time = hms::as_hms(str_c(
+              str_extract(Path,regex("(?<=_[:digit:]{6}_)[:digit:]{2}")),
+              str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
+              str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
+            Type = str_extract(Path,"[:alpha:]+")) |>
+          # Consider Duplicated uploads
+          mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`)) |> 
+          mutate(Status = case_when(
+                  str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
+                  str_length(`Condition ID`) != 3 |
+                  str_detect(`Condition ID`,"[:lower:]") |
+                  is.na(`Subject ID`) | is.na(`Condition ID`) |
+                  str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) |
+                  Count != 1 ~ "No Good",
+                  .default = "Good"))
+}
+```
+
+<!-- //wf00168p.oneabbott.com/data1/CDM/ALB-US-EXP-21001/UploadData/AUU/AUU_DataFiles/USC-801/008010001/FV/Atna8010001_______GLU_231206_155010_events.csv -->
+<!-- \\wf00168p.oneabbott.com\data1\CDM\ALB-US-EXP-21001\UploadData\UUU\UUU_DataFiles\USC-801\008010020\Mobi8010020_______LS2_231117_094006_dualsensors\Mobi8010020_______LS2_231117_094006_dualsensors_events.csv -->
+
+<!-- \\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\SE01\UploadData\UUU\UUU_Datafiles\083-IDR\2023-12-01_1554\Apol0830012_______GLU_231128_123347\Apol0830012_______GLU_231128_123347_events.csv -->
+```{r}
+tibble(Path = str_extract(file_path, regex("(?<=UploadData/).+|(?<=Upload Data/).+")),
+               Site  = str_c(str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+|(?<=Data Files/)[:alnum:]+",ignore_case = T)),
+                     str_extract(Path,regex("(?<=DataFiles/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+|(?<=Data Files/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+",ignore_case = T)),
+                     sep = "-"),
+              `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+")),
+              `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+")),
+            Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
+            Time = hms::as_hms(str_c(
+              str_extract(Path,regex("(?<=_[:digit:]{6}_)[:digit:]{2}")),
+              str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
+              str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
+            Type = str_extract(Path,"[:alpha:]+")) |>
+          mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`)) |> 
+          mutate(Status = case_when(
                str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) |
                str_length(`Condition ID`) != 3 |
                str_detect(`Condition ID`,"[:lower:]") |
                is.na(`Subject ID`) | is.na(`Condition ID`) |
-               str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) ~ "No Good",
+               str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) |
+               Count != 1 ~ "No Good",
                .default = "Good"))
-}
 ```
+
 
 ```{r}
 #| label: Output excel
