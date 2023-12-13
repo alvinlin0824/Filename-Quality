@@ -4,22 +4,22 @@ author: "Alvin, Lin"
 date: "`r Sys.Date()`"
 ---
 
+<!-- Instructions -->
+<!-- Step 1 : Ctrl + Alt + R -->
+<!-- Step 2 : Copy the upload directory and then paste -->
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-<!-- Instructions -->
-<!-- Step 1 : Copy the upload directory and then paste -->
-<!-- Step 2 : Ctrl + Alt + R -->
+```{r User-defined path}
+path <- readline("Please paste the directory:")
+```
 
 ```{r Libaray Packages, message = FALSE}
 library(tidyverse)
 library(openxlsx)
 library(fs)
-```
-
-```{r User-defined path}
-path <- readline("Please paste the directory:")
 ```
 
 ```{r Directory}
