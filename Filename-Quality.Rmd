@@ -5,8 +5,9 @@ date: "`r Sys.Date()`"
 ---
 
 <!-- Instructions -->
-<!-- Step 1 : Ctrl + Alt + R -->
-<!-- Step 2 : Copy the upload directory and then paste -->
+<!-- Step 1 : Copy the directory of upload -->
+<!-- Step 2 : Ctrl + Alt + R -->
+<!-- Step 3 : And then paste -->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)

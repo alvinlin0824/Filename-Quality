@@ -32,8 +32,9 @@ execute:
 <!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\007 -->
 
 <!-- Instructions -->
-<!-- Step 1 : Ctrl + Alt + R -->
-<!-- Step 2 : Copy the upload directory and then paste -->
+<!-- Step 1 : Copy the directory of upload -->
+<!-- Step 2 : Ctrl + Alt + R -->
+<!-- Step 3 : And then paste -->
 
 ```{r}
 #| label: User-defined path
