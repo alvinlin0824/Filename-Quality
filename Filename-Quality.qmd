@@ -36,16 +36,16 @@ execute:
 <!-- Step 2 : Copy the upload directory and then paste -->
 
 ```{r}
+#| label: User-defined path
+path <- readline("Please paste the directory:")
+```
+
+```{r}
 #| label: Libaray Packages 
 #| message: false
 library(tidyverse)
 library(openxlsx)
 library(fs)
-```
-
-```{r}
-#| label: User-defined path
-path <- readline("Please paste the directory:")
 ```
 
 ```{r}
