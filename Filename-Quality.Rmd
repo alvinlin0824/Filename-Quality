@@ -18,8 +18,12 @@ library(openxlsx)
 library(fs)
 ```
 
+```{r User-defined path}
+path <- readline("Please paste the directory:")
+```
+
 ```{r Directory}
-file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\005)"),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
+file_list <- dir_ls(gsub("\\\\", "/",path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
 ```
 
 ```{r Filter Path}

@@ -32,8 +32,8 @@ execute:
 <!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\007 -->
 
 <!-- Instructions -->
-<!-- Step 1 : Copy the upload directory and then paste -->
-<!-- Step 2 : Ctrl + Alt + R -->
+<!-- Step 1 : Ctrl + Alt + R -->
+<!-- Step 2 : Copy the upload directory and then paste -->
 
 ```{r}
 #| label: Libaray Packages 
@@ -44,8 +44,13 @@ library(fs)
 ```
 
 ```{r}
+#| label: User-defined path
+path <- readline("Please paste the directory:")
+```
+
+```{r}
 #| label: Directory
-file_list <- dir_ls(gsub("\\\\", "/", r"(\\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008)"),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
+file_list <- dir_ls(gsub("\\\\", "/", path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
 ```
 
 ```{r}
