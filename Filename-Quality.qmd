@@ -38,7 +38,7 @@ execute:
 
 ```{r}
 #| label: User-defined path
-path <- readline("Please paste the directory:")
+path <- readline("Please paste the directory: ")
 ```
 
 ```{r}
