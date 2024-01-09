@@ -153,7 +153,7 @@ conditionalFormatting(wb, "Filename-Quality", cols = 10, rows = 1:(nrow(data) + 
 if (any(str_detect(file_list,"CDM_23238"))) {
 file_name <- str_c(str_replace(str_extract(file_path[1],regex("(?<=CDM_).{9}")),"/","-Sub")," Filename-Quality.xlsx")
 } else {
-file_name = str_c(str_replace(str_remove(str_extract(file_path[1],regex("(?<=CDM/)[:graph:]+")),regex("/UploadData.+|/Upload")),"/","-"), " Filename-Quality.xlsx")}
+file_name = str_c(str_replace(str_remove(str_extract(file_path[1],regex("(?<=CDM/)[:graph:]+|(?<=M:/)[:graph:]+")),regex("/UploadData.+|/Upload")),"/","-"), " Filename-Quality.xlsx")}
 # Save worksheet
 saveWorkbook(wb, file_name, overwrite = TRUE)
 ```
