@@ -36,19 +36,26 @@ file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|A
 ```{r Wrangle Path}
 if (any(str_detect(file_list,"CDM_23238"))){
   data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
-       Site  = str_extract(Path,regex("(?<=/Apol)[:upper:]{3}|(?<=/Mobi)[:upper:]{3}|(?<=/GK_)[:upper:]{3}")),
-                `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}|(?<=/GK_ADC)[:digit:]{4}")),
-                `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+|(?<=GK_ADC[:digit:]{4}_)[:alnum:]+")),
+       Site  = str_extract(Path,regex("(?<=/Apol)[:upper:]{3}|(?<=/Mobi)[:upper:]{3}|(?<=/[:alnum:]{2}_)[:upper:]{3}")),
+                `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}|(?<=/[:alnum:]{2}_ADC)[:digit:]{4}")),
+                `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+|(?<=[:alnum:]{2}_ADC[:digit:]{4}_)[:alnum:]+")),
             Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
             Time = hms::as_hms(str_c(
               str_extract(Path,regex("(?<=_[:digit:]{6}_)[:digit:]{2}")),
               str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
               str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
             Type = str_extract(Path,"AUU|UUU|GKS"),
+            Sensor = str_extract(Path,"[:alnum:]{2}(?=_ADC)"),
             Visit = str_extract(Path,regex("FV|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit|Round1|Round2",ignore_case = T))
        ) |> 
           distinct(pick(c(Site:Time)),.keep_all = T) |> 
-          mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit)) |>
+          mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit))
+  # Count the most number of sensors  
+  most <- data |> 
+          count(Sensor) |> 
+          slice_max(n) |> 
+          pull(Sensor)      
+  data <- data |>  
           mutate(Status = case_when(
                str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) ~ "No Good: Please Check Subject ID",
                str_length(`Condition ID`) != 3 |
@@ -56,9 +63,11 @@ if (any(str_detect(file_list,"CDM_23238"))){
                str_detect(`Condition ID`,"[:digit:]{3}") ~ "No Good: Please Check Condition ID",
                is.na(`Subject ID`) | is.na(`Condition ID`) ~ "No Good: Please Check Subject ID and Condition ID",
                str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) ~ "No Good: Put files on the wrong Site folders",
+               Sensor != most ~ "No Good: Wrong sensor type",
                Count != 1 ~ "No Good: Duplicated Uploads",
                .default = "Good")) |> 
          arrange(`Subject ID`)
+  
 } else {
 data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=UploadData/).+")),
                Site  = str_c(str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+",ignore_case = T)),
@@ -99,7 +108,7 @@ addWorksheet(wb,"Filename-Quality")
 # Write the data to the worksheet
 writeData(wb,"Filename-Quality", data, startCol = 1, startRow = 1, rowNames = F)
 # Conditional Formatting
-conditionalFormatting(wb, "Filename-Quality", cols = 10, rows = 1:(nrow(data) + 1), style = style1, type = "contains", rule = "No Good")
+conditionalFormatting(wb, "Filename-Quality", cols = 10:11, rows = 1:(nrow(data) + 1), style = style1, type = "contains", rule = "No Good")
 # Create file name
 if (any(str_detect(file_list,"CDM_23238"))) {
 file_name <- str_c(str_replace(str_extract(file_path[1],regex("(?<=CDM_).{9}")),"/","-Sub")," Filename-Quality.xlsx")
