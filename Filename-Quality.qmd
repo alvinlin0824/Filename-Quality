@@ -72,19 +72,13 @@ library(fs)
 #| label: Directory
 file_list <- dir_ls(gsub("\\\\", "/", path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
 ```
- <!-- & str_detect(file_list,regex("AUU_DataFiles|UUU_DataFiles|UUU Data Files",ignore_case = T)) -->
+
 ```{r}
 #| label: Filter Path
 if (any(str_detect(file_list,"CDM_23238"))){
 file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T))]} else {
 file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|Final",ignore_case = T))]}
 ```
-
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\009\AUU\009AUUFIN_L1\0232\ApolADC0232138878_BGM_231215_122010_gluc.csv -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\010\GKS\0247\L3_ADC0247_LL1_231220_130807_devices.csv -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\010\GKS\0247\GK_ADC0247_LU1_231220_130807_readings.csv -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\008\UUU\008UUUFIN_G1L1\MobiADC0181139539_LL2_231128_095655_dualsensors\MobiADC0181139539_LL2_231128_095655_dualsensors_glucPlus.csv -->
-<!-- \\oneabbott.com\dept\ADC\Technical_OPS\Clinical_Affairs\CDM_23238\005\GKS\005GKSFIN_G1L1\0091\GK_ADC0091_CT1_231024_092731_readings.csv -->
 
 ```{r}
 #| label: Wrangle Path
