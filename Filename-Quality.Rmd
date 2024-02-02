@@ -24,7 +24,7 @@ library(fs)
 ```
 
 ```{r Directory}
-file_list <- dir_ls(gsub("\\\\", "/",path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
+file_list <- dir_ls(gsub("\\\\", "/",path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*devices.csv")
 ```
 
 ```{r Filter Path}
@@ -37,7 +37,7 @@ file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|A
 if (any(str_detect(file_list,"CDM_23238"))){
   data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
        Site  = str_extract(Path,regex("(?<=/Apol)[:upper:]{3}|(?<=/Mobi)[:upper:]{3}|(?<=/[:alnum:]{2}_)[:upper:]{3}")),
-                `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}|(?<=/[:alnum:]{2}_ADC)[:digit:]{4}")),
+                `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}|(?<=/[:alnum:]{2}_ADC)[:alnum:]{4}")),
                 `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+|(?<=[:alnum:]{2}_ADC[:digit:]{4}_)[:alnum:]+")),
             Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
             Time = hms::as_hms(str_c(

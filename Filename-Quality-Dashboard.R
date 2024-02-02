@@ -24,17 +24,17 @@ server <- function(input, output) {
             waiter <- waiter::Waiter$new()
             waiter$show()
             on.exit(waiter$hide())
-            
-            Sys.sleep(sample(5, 1))
-            runif(1)
-          file_list <- dir_ls(str_c(t_drive,input$event),recurse = T,glob = "*extracted_realm.zip|*events.csv|*readings.csv")
+            # Sys.sleep(sample(5, 1))
+            # runif(1)
+          
+          file_list <- dir_ls(str_c(t_drive,input$event),recurse = T,glob = "*extracted_realm.zip|*events.csv|*devices.csv")
           # Filter Path
           if (any(str_detect(file_list,"CDM_23238"))){
               file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives",ignore_case = T))]
               data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=Clinical_Affairs/).+|(?<=Upload Data/).+")),
                              Site  = str_extract(Path,regex("(?<=/Apol)[:upper:]{3}|(?<=/Mobi)[:upper:]{3}|(?<=/[:alnum:]{2}_)[:upper:]{3}")),
                             `Subject ID` = str_extract(Path,regex("(?<=/ApolADC)[:digit:]{4}|(?<=/MobiADC)[:digit:]{4}|(?<=/[:alnum:]{2}_ADC)[:digit:]{4}")),
-                            `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+|(?<=[:alnum:]{2}_ADC[:digit:]{4}_)[:alnum:]+")),
+                            `Condition ID` = str_extract(Path,regex("(?<=ApolADC[:digit:]{10}_)[:alnum:]+|(?<=MobiADC[:digit:]{10}_)[:alnum:]+|(?<=[:alnum:]{2}_ADC[:alnum:]{4}_)[:alnum:]+")),
                              Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
                              Time = hms::as_hms(str_c(
                                 str_extract(Path,regex("(?<=_[:digit:]{6}_)[:digit:]{2}")),
