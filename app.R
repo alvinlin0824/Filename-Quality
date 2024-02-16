@@ -64,7 +64,7 @@ server <- function(input, output) {
   # \\wf00168p.oneabbott.com\data1\CDM\ADC-US-VAL-21216\UploadData\AUU
   # Directory
   text <- reactive({
-          req(input$study,input$event)
+          req(input$study)
             waiter <- waiter::Waiter$new()
             waiter$show()
             on.exit(waiter$hide())
@@ -111,15 +111,13 @@ server <- function(input, output) {
                     Sensor != most ~ "No Good: Wrong sensor type",
                     Count != 1 ~ "No Good: Duplicated Uploads",
                     .default = "Good")) |>
-                  arrange(`Subject ID`)}
+                  arrange(`Subject ID`,`Condition ID`)}
 
           else {
-              file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|Final|SDPT",ignore_case = T))]
+              file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|Final|SDPT|Desktop",ignore_case = T)) & str_detect(file_list,regex("AUU|UUU",ignore_case = T))]
 
               data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=UploadData/).+")),
-                             Site  = str_c(str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+",ignore_case = T)),
-                                         str_extract(Path,regex("(?<=DataFiles/[:alnum:]{3,4}[:punct:]{1})[:alnum:]+",ignore_case = T)),
-                                         sep = "-"),
+                             Site  = str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+-[:alnum:]+|(?<=DataFiles/)[:alnum:]+",ignore_case = T)),
                             `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+")),
                             `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+")),
                              Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
@@ -138,12 +136,16 @@ server <- function(input, output) {
                             str_detect(`Condition ID`,"[:lower:]") |
                             str_detect(`Condition ID`,"[:digit:]{3}") ~ "No Good: Please Check Condition ID",
                           is.na(`Subject ID`) | is.na(`Condition ID`) ~ "No Good: Please Check Subject ID and Condition ID",
-                          str_extract(Site,"[:digit:]{3}") != str_sub(`Subject ID`,1,3) ~ "No Good: Put files on the wrong Site folders",
+                          str_extract(Site,"[:digit:]+") != str_sub(`Subject ID`,1,3) ~ "No Good: Put files on the wrong Site folders",
                           Count != 1 ~ "No Good: Duplicated Uploads",
                           .default = "Good")) |>
-                        arrange(`Subject ID`)}})
+                        arrange(`Subject ID`,`Condition ID`)}})
 
-          output$table <- renderReactable({reactable(text(),paginationType = "jump", striped = TRUE, highlight = TRUE, searchable = TRUE, filterable = TRUE,defaultPageSize = 6, resizable = TRUE,defaultColDef = colDef(align = "center",minWidth = 115))})
+    observeEvent(input$study, {
+        freezeReactiveValue(input, "event")
+    }) 
+  
+     output$table <- renderReactable({reactable(text(),paginationType = "jump", striped = TRUE, highlight = TRUE, searchable = TRUE, filterable = TRUE,defaultPageSize = 6, resizable = TRUE,defaultColDef = colDef(align = "center",minWidth = 115))})
 
 
 }
