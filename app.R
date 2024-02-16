@@ -27,7 +27,6 @@ ui <- dashboardPage(
         dashboardHeader(title = "Filename Quality"),
         dashboardSidebar(selectInput("study", "Please Select Study", study_list,width = "300px"),
                          uiOutput("new")
-                         # textInput("event1","Input Event Number")
                          ),
         dashboardBody(reactableOutput("table"),waiter::use_waiter())
 )
@@ -41,19 +40,19 @@ server <- function(input, output) {
        # InHouse
        event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23238\OpenClinicaExtract\Current)")) |>
                 str_extract("(?<=Current/).{3}")
-       selectInput("event", h6("Please select study event"), event, width = "400px")
+       selectInput("event", "Please select study event", event, width = "400px")
     } else if (input$study %in% c("ADC-US-RES-22225")) {
       event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-22225\)"), type = "directory", regexp = "SE") |>
                str_extract("(?<=[:digit:]{5}/).+")
-      selectInput("event", h6("Please select study event"), event, width = "400px")
+      selectInput("event", "Please select study event", event, width = "400px")
     } else if (input$study %in% c("ADC-US-RES-21211")) {
       event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-21211\)"), type = "directory", regexp = "SE") |>
                str_extract("(?<=[:digit:]{5}/).+")
-      selectInput("event", h6("Please select study event"), event, width = "400px")
+      selectInput("event", "Please select study event", event, width = "400px")
     } else if (input$study %in% c("ADC-US-RES-23241")) {
       event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\)"), type = "directory", regexp = "SE") |>
                str_extract("(?<=[:digit:]{5}/).+")
-      selectInput("event", h6("Please select study event"), event, width = "400px")
+      selectInput("event", "Please select study event", event, width = "400px")
     }
       else {
          return(NULL)
@@ -126,12 +125,12 @@ server <- function(input, output) {
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
                              Type = str_extract(Path,"[:alpha:]+"),
-                              Visit = str_extract(Path,regex("FV|Interim|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit",ignore_case = T))) |>
+                             Visit = str_extract(Path,regex("FV|Interim|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit",ignore_case = T))) |>
               # Remove dualsensors_events.csv and dualsensors_extracted_realm.zip
                         distinct(pick(c(Site:Time)),.keep_all = T) |>
                         mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit)) |>
                         mutate(Status = case_when(
-                          str_length(`Subject ID`) != median(str_length(`Subject ID`),na.rm = T) ~ "No Good: Please Check Subject ID",
+                          str_length(`Subject ID`) != 7 ~ "No Good: Please Check Subject ID",
                           str_length(`Condition ID`) != 3 |
                             str_detect(`Condition ID`,"[:lower:]") |
                             str_detect(`Condition ID`,"[:digit:]{3}") ~ "No Good: Please Check Condition ID",
