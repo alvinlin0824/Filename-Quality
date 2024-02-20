@@ -125,7 +125,9 @@ server <- function(input, output) {
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
                              Type = str_extract(Path,"[:alpha:]+"),
-                             Visit = str_extract(Path,regex("FV|Interim|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit",ignore_case = T))) |>
+                             # Visit = str_extract(Path,regex("FV|Interim|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit",ignore_case = T))
+                             Visit = str_extract(Path,regex("[:alnum:]+(?=/Apol)|[:alnum:]+(?=/Mobi)",ignore_case = T))
+                            ) |>
               # Remove dualsensors_events.csv and dualsensors_extracted_realm.zip
                         distinct(pick(c(Site:Time)),.keep_all = T) |>
                         mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit)) |>
@@ -144,7 +146,8 @@ server <- function(input, output) {
         freezeReactiveValue(input, "event")
     }) 
   
-     output$table <- renderReactable({reactable(text(),paginationType = "jump", striped = TRUE, highlight = TRUE, searchable = TRUE, filterable = TRUE,defaultPageSize = 6, resizable = TRUE,defaultColDef = colDef(align = "center",minWidth = 115))})
+     output$table <- renderReactable({reactable(text(),paginationType = "jump", striped = TRUE, highlight = TRUE, searchable = TRUE, filterable = TRUE, showPageSizeOptions = TRUE,
+                                                pageSizeOptions = c(6, 12, 18), defaultPageSize = 6, resizable = TRUE,defaultColDef = colDef(align = "center",minWidth = 115))})
 
 
 }

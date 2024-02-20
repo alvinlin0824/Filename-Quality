@@ -144,6 +144,11 @@ data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(
 ```
 
 ```{r}
+# tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=UploadData/).+")),
+#       Site  = str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+-[:alnum:]+|(?<=DataFiles/)[:alnum:]+",ignore_case = T))) |> View()
+```
+
+```{r}
 #| label: Output excel
 # Create a workbook
 wb <- createWorkbook()
