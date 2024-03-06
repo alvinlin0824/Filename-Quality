@@ -92,7 +92,7 @@ server <- function(input, output) {
                              Type = str_extract(Path,"AUU|UUU|GKS"),
                              Sensor = str_extract(Path,"[:alnum:]{2}(?=_ADC)"),
                              Visit = str_extract(Path,regex("FV|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit|Round1|Round2",ignore_case = T))) |>
-                        distinct(pick(c(Site:Time)),.keep_all = T) |>
+                        distinct(pick(c(Site:Time,Visit)),.keep_all = T) |>
                         mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit))
               # Count the most number of sensors
               most <- data |>
@@ -129,7 +129,7 @@ server <- function(input, output) {
                              Visit = str_extract(Path,regex("[:alnum:]+(?=/Apol)|[:alnum:]+(?=/Mobi)",ignore_case = T))
                             ) |>
               # Remove dualsensors_events.csv and dualsensors_extracted_realm.zip
-                        distinct(pick(c(Site:Time)),.keep_all = T) |>
+                        distinct(pick(c(Site:Time,Visit)),.keep_all = T) |>
                         mutate(Count = n(),.by = c(Type,`Subject ID`,`Condition ID`,Visit)) |>
                         mutate(Status = case_when(
                           str_length(`Subject ID`) != 7 ~ "No Good: Please Check Subject ID",

@@ -23,12 +23,6 @@ library(openxlsx)
 library(fs)
 ```
 
-```{r}
-vroom::vroom("SN4230002377_2024-02-08 124238.txt") |> 
-       filter(ErrorCode != 0) |> View()
-```
-
-
 ```{r Directory}
 file_list <- dir_ls(gsub("\\\\", "/",path),recurse = T,glob = "*extracted_realm.zip|*events.csv|*devices.csv")
 ```
