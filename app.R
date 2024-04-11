@@ -53,6 +53,10 @@ server <- function(input, output) {
       event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23241\)"), type = "directory", regexp = "SE") |>
                str_extract("(?<=[:digit:]{5}/).+")
       selectInput("event", "Please select study event", event, width = "400px")
+    } else if (input$study %in% c("ADC-US-RES-23240")) {
+      event <- dir_ls(gsub("\\\\", "/", r"(\\wf00168p.oneabbott.com\data1\CDM\ADC-US-RES-23240\SE01_02_03\UploadData\UUU\UUU Data Files\ASPI-134\)"), type = "directory", regexp = "SE") |>
+               str_extract("(?<=ASPI-134/).+")
+      selectInput("event", "Please select study event", event, width = "400px")
     }
       else {
          return(NULL)
@@ -69,10 +73,13 @@ server <- function(input, output) {
             on.exit(waiter$hide())
             # Sys.sleep(sample(5, 1))
             # runif(1)
+            # M:\ADC-US-RES-23240\SE01_02_03\UploadData\UUU\UUU Data Files\ASPI-134\SE01
           if (input$study %in% c("ADC-US-RES-23238")) {
                file_list <- dir_ls(str_c(t_drive,input$event), recurse = T, glob = "*extracted_realm.zip|*events.csv|*devices.csv")
           } else if (input$study %in% c("ADC-US-RES-22225","ADC-US-RES-21211","ADC-US-RES-21211","ADC-US-RES-23241")) {
                file_list <- dir_ls(str_c(m_drive,input$study,"/",input$event), recurse = T, glob = "*extracted_realm.zip|*events.csv|*devices.csv")
+          } else if (input$study %in% c("ADC-US-RES-23240")) {
+            file_list <- dir_ls(str_c(m_drive,input$study,"/SE01_02_03/UploadData/UUU/UUU Data Files/ASPI-134/",input$event), recurse = T, glob = "*extracted_realm.zip|*events.csv|*devices.csv")
           } else {
                file_list <- dir_ls(str_c(m_drive,input$study), recurse = T, glob = "*extracted_realm.zip|*events.csv|*devices.csv")
           }
