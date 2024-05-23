@@ -73,7 +73,6 @@ server <- function(input, output) {
             on.exit(waiter$hide())
             # Sys.sleep(sample(5, 1))
             # runif(1)
-            # M:\ADC-US-RES-23240\SE01_02_03\UploadData\UUU\UUU Data Files\ASPI-134\SE01
           if (input$study %in% c("ADC-US-RES-23238")) {
                file_list <- dir_ls(str_c(t_drive,input$event), recurse = T, glob = "*extracted_realm.zip|*events.csv|*devices.csv")
           } else if (input$study %in% c("ADC-US-RES-22225","ADC-US-RES-21211","ADC-US-RES-21211","ADC-US-RES-23241")) {
@@ -120,20 +119,23 @@ server <- function(input, output) {
                   arrange(`Subject ID`,`Condition ID`)}
 
           else {
-              file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|Final|SDPT|Desktop",ignore_case = T)) & str_detect(file_list,regex("AUU|UUU",ignore_case = T))]
-
+              # file_path <- file_list[!str_detect(file_list,regex("Transfers|Transfer|Archive|Archives|Final|Desktop",ignore_case = T)) | str_detect(file_list,regex("AUU|UUU",ignore_case = T))]
+              file_path <- file_list |> 
+                           path_filter(regexp = "Transfers|Transfer|Archive|Archives|Final|Desktop", invert = T, ignore.case = T) 
+    
+              # M:\ADC-US-RES-22225\SE46_47_48_Ket\Upload Data\UUU\UUU_DataFiles\ERA-117\001170001\C1     
               data <- tibble(Path = str_extract(str_remove_all(file_path,"[:blank:]"),regex("(?<=UploadData/).+")),
-                             Site  = str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+-[:alnum:]+|(?<=DataFiles/)[:alnum:]+",ignore_case = T)),
-                            `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+")),
-                            `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+")),
-                             Date = ymd(str_extract(Path,regex("(?<=_)[:digit:]{6}"))),
+                             Site  = str_extract(Path,regex("(?<=DataFiles/)[:alnum:]+-[:alnum:]+|(?<=DataFiles/)[:alnum:]+|(?<=SDPT_DataFiles/)[:alnum:]+",ignore_case = T)),
+                            `Subject ID` = str_extract(Path,regex("(?<=/Mobi)[:digit:]+|(?<=/Atna)[:digit:]+|(?<=/Apol)[:digit:]+|(?<=/GK_)[:digit:]+|(?<=/L3_)[:digit:]+",ignore_case = T)),
+                            `Condition ID` = str_extract(Path,regex("(?<=[:punct:]{7})[:alnum:]+|(?<=/GK_[:digit:]{7}_)[:alnum:]+|(?<=/L3_[:digit:]{7}_)[:alnum:]+")),
+                             Date = ymd(str_extract(Path,regex("(?<=_[:alnum:]{3}_)[:digit:]{6}"))),
                              Time = hms::as_hms(str_c(
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_)[:digit:]{2}")),
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{2})[:digit:]{2}")),
                                     str_extract(Path,regex("(?<=_[:digit:]{6}_[:digit:]{4})[:digit:]{2}")),sep = ":")),
                              Type = str_extract(Path,"[:alpha:]+"),
-                             # Visit = str_extract(Path,regex("FV|Interim|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit",ignore_case = T))
-                             Visit = str_extract(Path,regex("[:alnum:]+(?=/Apol)|[:alnum:]+(?=/Mobi)",ignore_case = T))
+                             Visit = str_extract(Path,regex("FV|Interim|V1|V2|V3|V4|V5|Visit3|Visit4|Visit5|Visit_3|Visit_4|Visit_5|C1|C2|C3|C4|Exit|CV1|CV2",ignore_case = T))
+                             # Visit = str_extract(Path,regex("[:alnum:]+(?=/Apol)|[:alnum:]+(?=/Mobi)|(?<=[:digit:]{9}/)[:alnum:]+",ignore_case = T))
                             ) |>
               # Remove dualsensors_events.csv and dualsensors_extracted_realm.zip
                         distinct(pick(c(Site:Time,Visit)),.keep_all = T) |>
@@ -147,7 +149,7 @@ server <- function(input, output) {
                           str_extract(Site,"[:digit:]+") != str_sub(`Subject ID`,1,3) ~ "No Good: Put files on the wrong Site folders",
                           Count != 1 ~ "No Good: Duplicated Uploads",
                           .default = "Good")) |>
-                        arrange(`Subject ID`,`Condition ID`)}})
+                        arrange(Type,`Subject ID`,`Condition ID`)}})
 
     observeEvent(input$study, {
         freezeReactiveValue(input, "event")
